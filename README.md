@@ -1,0 +1,1 @@
+NASM uses a variant of Intel assembly syntax.
