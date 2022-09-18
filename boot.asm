@@ -12,8 +12,10 @@ jmp main
 
 main:
     ; set video mode
-    mov ah, 0x00
-    mov al, 0x03
+    xor     ax, ax     ; DS=0
+    mov     ds, ax
+    cld                ; DF=0 because our LODSB requires it
+    mov ax, 0x03
     int 0x10
 
 
@@ -23,24 +25,28 @@ main:
     mov dl, 1
     int 0x10
 
-    ; set colors
-    mov ah, 0x0b
 
 
 
 
     mov si, hal_text        ; pass argument
+    mov     bl, 04h    ; RedOnBlack
     call print_text    ; call the function
 
 
     jmp $
 
 
+
+
+
 print_text:
     pusha           ; push all registers to stack
-    mov ah, 0x09    ; ;      Write Character and Attribute
-    mov     cx, 2
-    cld
+    mov     bh, 0     ; DisplayPage
+    mov     cx, 1
+    mov bl, 0x04        ; color - light red
+
+
 next_char:
     lodsb
     ; mov ah, 0x09
@@ -48,10 +54,16 @@ next_char:
     cmp al, 0
     je end_print
     ; xchg   dx, bx       ; Only BX can be used as an index register
-    mov bl, 0x04        ; color - light red
+    mov ah, 0x09    ; ;      Write Character and Attribute
     int 0x10        ;  BIOS interrupt - equivalent to print function
     ; xchg   dx, bx       ; Only BX can be used as an index register
-    inc bx
+    ; inc bx
+
+
+    mov     ah, 0x0e   ; BIOS.Teletype
+    int     10h
+
+
     jmp next_char
 end_print:
     popa            ; pop all registers to stack
