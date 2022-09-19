@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import re
+import string
 
 
 def main():
@@ -18,13 +19,15 @@ def main():
             line = line.replace("48;5;", "")
             line = line.replace("▄", "")
 
-            output = ""
+            output = "    db "
             pattern = re.compile(r'\[([0-9]*);([0-9]*)')
             for fg, bg in pattern.findall(line):
+                if output[-1] in string.hexdigits:
+                    output += ","
                 fg_val = bash_color_to_bios_color(int(fg))
                 bg_val = bash_color_to_bios_color(int(bg))
 
-                output += f"0x{fg_val << 4 | bg_val:02x},"
+                output += f"0x{bg_val << 4 | fg_val:02x}"
 
             print(output)
 
