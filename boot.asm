@@ -2,16 +2,8 @@
 [org 0x7c00] ; MBR start address
 
 
-jmp main
 
-    ; mov ah, 0x0e            ; BIOS command to move our cursor forward
-    ; mov al, 'X'             ; Store the character to print in the al register
-    ; int 0x10                ; BIOS interrupt - equivalent to print function
-
-; mov ax, HELLO_MSG ; 1st variable
-
-main:
-    ; set video mode
+; set video mode
     xor     ax, ax     ; DS=0
     mov     ds, ax
     cld                ; DF=0 because our LODSB requires it
@@ -19,112 +11,33 @@ main:
     int 0x10
 
 
-    ; set cursor position
-    ; mov ah, 0x02
-    ; mov dh, 1
-    ; mov dl, 1
-    ; int 0x10
+%define EYE_START_COLUMN    27
+%define EYE_START_ROW       4
+%define EYE_NUM_OF_CHARS    25
+%define EYE_NUM_OF_LINES    13
+%define EYE_BLOCK           220
 
-
-
-
-    ; mov si, hal_text        ; pass argument
-    ; mov     bl, 04h    ; RedOnBlack
-    ; call print_text    ; call the function
-
-    ; mov dh, 1
-    ; mov di, hal_eye+(0 * 25)
-    ; call print_eye
-
-    mov dh, 1
-    mov si, hal_eye+(0 * 25)
-    call print_eye
-
-    ; mov dh, 2
-    ; mov si, hal_eye+(1 * 25)
-    ; call print_eye
-
-    ; mov dh, 3
-    ; mov si, hal_eye+(2 * 25)
-    ; call print_eye
-
-    ; mov dh, 4
-    ; mov si, hal_eye+(3 * 25)
-    ; call print_eye
-
-    ; mov dh, 5
-    ; mov si, hal_eye+(4 * 25)
-    ; call print_eye
-
-    ; mov dh, 6
-    ; mov si, hal_eye+(5 * 25)
-    ; call print_eye
-
-    ; mov dh, 7
-    ; mov si, hal_eye+(6 * 25)
-    ; call print_eye
-
-    ; mov dh, 8
-    ; mov si, hal_eye+(7 * 25)
-    ; call print_eye
-
-
-    jmp $
-
-
-; move_to_next_line:
-;     mov ah, 0x02
-;     mov dl, 1
-;     int 0x10
-;     ret
-
-
-
-; print_text:
-;     pusha           ; push all registers to stack
-;     mov     bh, 0     ; DisplayPage
-;     mov     cx, 1
-;     mov bl, 0x04        ; color - light red
-
-
-; next_char:
-;     lodsb
-;     ; mov ah, 0x09
-;     ; mov al, [bx]        ; Store the character to print in the al register
-;     cmp al, 0
-;     je end_print_text
-;     ; xchg   dx, bx       ; Only BX can be used as an index register
-;     mov ah, 0x09    ; ;      Write Character and Attribute
-;     int 0x10        ;  BIOS interrupt - equivalent to print function
-;     ; xchg   dx, bx       ; Only BX can be used as an index register
-;     ; inc bx
-
-
-;     mov     ah, 0x0e   ; BIOS.Teletype
-;     int     10h
-
-
-;     jmp next_char
-; end_print_text:
-;     popa            ; pop all registers to stack
-;     ret
-
+%define TEXT_START_COLUMN   19
+%define TEXT_START_ROW      (EYE_START_ROW + EYE_NUM_OF_LINES + 1)
+%define TEXT_RED_ON_BLACK   0x04
 
 
 
 print_eye:
+    mov dh, EYE_START_ROW
+    mov dl, EYE_START_COLUMN
     mov ah, 0x02
-    mov dl, 1
     int 0x10
 
     ; pusha           ; push all registers to stack
     ; mov     bh, 0     ; DisplayPage
-    mov al, 220                ; 0x09, 0x0e function - ASCII character to write ▄
+    mov al, EYE_BLOCK                ; 0x09, 0x0e function - ASCII character to write ▄
     mov     cx, 1               ; 0x09 function - count of characters to write
     mov bh, 0
 
-    mov dl, 25
-    mov di, 15
+    mov dl, EYE_NUM_OF_CHARS
+    mov di, EYE_NUM_OF_LINES
+    mov si, hal_eye
 next_block:
     ; lodsb
 
@@ -133,22 +46,8 @@ next_block:
 
     mov bl, [si]        ; 0x09 background, foreground color
 
-    ; cmp bx, 0
-    ; je end_print_eye
-    ; mov bx, 0xec
-
-    ; mov ah, 0x09
-    ; mov al, [bx]        ; Store the character to print in the al register
-    ; cmp al, 0
-    ; je end_print_eye
-    ; xchg   dx, bx       ; Only BX can be used as an index register
-
     mov ah, 0x09    ; ;      BIOS Function code - Write Character and Attribute
     int 0x10        ;  BIOS interrupt call
-
-    ; xchg   dx, bx       ; Only BX can be used as an index register
-    ; inc bx
-
 
     mov     ah, 0x0e   ; BIOS Function code - Teletype output
     int     10h             ; BIOS interrupt call
@@ -163,20 +62,61 @@ next_line:
     je end_print_eye
 
     inc dh
-    mov dl, 1
+    mov dl, EYE_START_COLUMN
     mov ah, 0x02
     int 0x10
 
-    mov dl, 25
+    mov dl, EYE_NUM_OF_CHARS
     jmp next_block
 
 end_print_eye:
-    ; popa            ; pop all registers to stack
-    ret
+    nop
 
+print_text:
+    mov dh, TEXT_START_ROW
+    mov dl, TEXT_START_COLUMN
+    mov ah, 0x02
+    int 0x10
+
+    ; pusha           ; push all registers to stack
+    ; mov     bh, 0     ; DisplayPage
+    mov     cx, 1               ; 0x09 function - count of characters to write
+    mov bh, 0
+    mov bl, TEXT_RED_ON_BLACK
+
+    mov si, hal_text
+next_char:
+    mov al, [si]
+    cmp al, 0
+    je end_print_text
+
+
+    mov ah, 0x09    ; ;      BIOS Function code - Write Character and Attribute
+    int 0x10        ;  BIOS interrupt call
+
+    mov     ah, 0x0e   ; BIOS Function code - Teletype output
+    int     10h             ; BIOS interrupt call
+
+    inc si
+    jmp next_char
+
+; next_line:
+;     dec di
+;     cmp di, 0
+;     je end_print_eye
+
+;     inc dh
+;     mov dl, EYE_START_COLUMN
+;     mov ah, 0x02
+;     int 0x10
+
+;     mov dl, EYE_NUM_OF_CHARS
+;     jmp next_block
+
+end_print_text:
+    jmp $
 
 hal_eye:
-    db 0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac
     db 0x00,0x00,0x00,0x00,0x00,0x00,0x06,0x08,0x08,0x77,0x77,0x77,0x77,0xf7,0xf7,0x37,0x07,0x08,0x08,0x00,0x00,0x00,0x00,0x00,0x00
     db 0x00,0x00,0x00,0x03,0x07,0x38,0x80,0x80,0x00,0x00,0x08,0x07,0x07,0x08,0x08,0x00,0x80,0x80,0x80,0x88,0x07,0x0f,0x00,0x00,0x00
     db 0x00,0x00,0x07,0xf8,0x80,0x08,0x00,0x00,0x00,0x00,0x00,0x08,0x08,0x00,0x00,0x70,0x00,0x00,0x00,0x00,0x80,0x78,0x07,0x00,0x00
@@ -190,13 +130,12 @@ hal_eye:
     db 0x00,0x00,0x00,0x00,0x80,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x08,0x78,0x88,0x00,0x00,0x00
     db 0x00,0x00,0x00,0x00,0x00,0x00,0x80,0x88,0x08,0x08,0x07,0x07,0x07,0x03,0x03,0x07,0x08,0x86,0x88,0x80,0x00,0x00,0x00,0x00,0x00
     db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80,0x80,0x80,0x60,0x80,0x80,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-    db 0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9
 
 
 
 
 hal_text:
-    db "I'm sorry Dave, I'm afraid I can't do that", 0
+    db "I'm sorry Dave, I'm afraid I can't do that.", 0
 
 times 510-($-$$) db 0   ;     Byte padding
 dw 0xaa55               ; Mandatory, to mark this as valid MBR
