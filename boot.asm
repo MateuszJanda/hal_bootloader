@@ -32,37 +32,41 @@ main:
     ; mov     bl, 04h    ; RedOnBlack
     ; call print_text    ; call the function
 
+    ; mov dh, 1
+    ; mov di, hal_eye+(0 * 25)
+    ; call print_eye
+
     mov dh, 1
     mov si, hal_eye+(0 * 25)
     call print_eye
 
-    mov dh, 2
-    mov si, hal_eye+(1 * 25)
-    call print_eye
+    ; mov dh, 2
+    ; mov si, hal_eye+(1 * 25)
+    ; call print_eye
 
-    mov dh, 3
-    mov si, hal_eye+(2 * 25)
-    call print_eye
+    ; mov dh, 3
+    ; mov si, hal_eye+(2 * 25)
+    ; call print_eye
 
-    mov dh, 4
-    mov si, hal_eye+(3 * 25)
-    call print_eye
+    ; mov dh, 4
+    ; mov si, hal_eye+(3 * 25)
+    ; call print_eye
 
-    mov dh, 5
-    mov si, hal_eye+(4 * 25)
-    call print_eye
+    ; mov dh, 5
+    ; mov si, hal_eye+(4 * 25)
+    ; call print_eye
 
-    mov dh, 6
-    mov si, hal_eye+(5 * 25)
-    call print_eye
+    ; mov dh, 6
+    ; mov si, hal_eye+(5 * 25)
+    ; call print_eye
 
-    mov dh, 7
-    mov si, hal_eye+(6 * 25)
-    call print_eye
+    ; mov dh, 7
+    ; mov si, hal_eye+(6 * 25)
+    ; call print_eye
 
-    mov dh, 8
-    mov si, hal_eye+(7 * 25)
-    call print_eye
+    ; mov dh, 8
+    ; mov si, hal_eye+(7 * 25)
+    ; call print_eye
 
 
     jmp $
@@ -76,34 +80,36 @@ main:
 
 
 
-print_text:
-    pusha           ; push all registers to stack
-    mov     bh, 0     ; DisplayPage
-    mov     cx, 1
-    mov bl, 0x04        ; color - light red
+; print_text:
+;     pusha           ; push all registers to stack
+;     mov     bh, 0     ; DisplayPage
+;     mov     cx, 1
+;     mov bl, 0x04        ; color - light red
 
 
-next_char:
-    lodsb
-    ; mov ah, 0x09
-    ; mov al, [bx]        ; Store the character to print in the al register
-    cmp al, 0
-    je end_print_text
-    ; xchg   dx, bx       ; Only BX can be used as an index register
-    mov ah, 0x09    ; ;      Write Character and Attribute
-    int 0x10        ;  BIOS interrupt - equivalent to print function
-    ; xchg   dx, bx       ; Only BX can be used as an index register
-    ; inc bx
+; next_char:
+;     lodsb
+;     ; mov ah, 0x09
+;     ; mov al, [bx]        ; Store the character to print in the al register
+;     cmp al, 0
+;     je end_print_text
+;     ; xchg   dx, bx       ; Only BX can be used as an index register
+;     mov ah, 0x09    ; ;      Write Character and Attribute
+;     int 0x10        ;  BIOS interrupt - equivalent to print function
+;     ; xchg   dx, bx       ; Only BX can be used as an index register
+;     ; inc bx
 
 
-    mov     ah, 0x0e   ; BIOS.Teletype
-    int     10h
+;     mov     ah, 0x0e   ; BIOS.Teletype
+;     int     10h
 
 
-    jmp next_char
-end_print_text:
-    popa            ; pop all registers to stack
-    ret
+;     jmp next_char
+; end_print_text:
+;     popa            ; pop all registers to stack
+;     ret
+
+
 
 
 print_eye:
@@ -115,23 +121,29 @@ print_eye:
     ; mov     bh, 0     ; DisplayPage
     mov al, 220                ; 0x09, 0x0e function - ASCII character to write ▄
     mov     cx, 1               ; 0x09 function - count of characters to write
+    mov bh, 0
     mov dx, 25
 next_block:
     ; lodsb
+
     cmp dx, 0
     je end_print_eye
 
-    mov bx, [si]        ; 0x09 background, foreground color
+    mov bl, [si]        ; 0x09 background, foreground color
+
+    ; cmp bx, 0
+    ; je end_print_eye
+    ; mov bx, 0xec
 
     ; mov ah, 0x09
     ; mov al, [bx]        ; Store the character to print in the al register
     ; cmp al, 0
     ; je end_print_eye
     ; xchg   dx, bx       ; Only BX can be used as an index register
+
     mov ah, 0x09    ; ;      BIOS Function code - Write Character and Attribute
-
-
     int 0x10        ;  BIOS interrupt call
+
     ; xchg   dx, bx       ; Only BX can be used as an index register
     ; inc bx
 
@@ -148,6 +160,8 @@ end_print_eye:
 
 
 hal_eye:
+    db 0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9,0xe9
+    db 0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac,0xac
     db 0x00,0x00,0x00,0x00,0x00,0x00,0x06,0x08,0x08,0x77,0x77,0x77,0x77,0xf7,0xf7,0x37,0x07,0x08,0x08,0x00,0x00,0x00,0x00,0x00,0x00
     db 0x00,0x00,0x00,0x03,0x07,0x38,0x80,0x80,0x00,0x00,0x08,0x07,0x07,0x08,0x08,0x00,0x80,0x80,0x80,0x88,0x07,0x0f,0x00,0x00,0x00
     db 0x00,0x00,0x07,0xf8,0x80,0x08,0x00,0x00,0x00,0x00,0x00,0x08,0x08,0x00,0x00,0x70,0x00,0x00,0x00,0x00,0x80,0x78,0x07,0x00,0x00
