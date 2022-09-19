@@ -122,12 +122,14 @@ print_eye:
     mov al, 220                ; 0x09, 0x0e function - ASCII character to write ▄
     mov     cx, 1               ; 0x09 function - count of characters to write
     mov bh, 0
-    mov dx, 25
+
+    mov dl, 25
+    mov di, 25
 next_block:
     ; lodsb
 
-    cmp dx, 0
-    je end_print_eye
+    cmp dl, 0
+    je next_line
 
     mov bl, [si]        ; 0x09 background, foreground color
 
@@ -151,9 +153,23 @@ next_block:
     mov     ah, 0x0e   ; BIOS Function code - Teletype output
     int     10h             ; BIOS interrupt call
 
-    dec dx
+    dec dl
     inc si
     jmp next_block
+
+next_line:
+    dec di
+    cmp di, 0
+    je end_print_eye
+
+    inc dh
+    mov dl, 1
+    mov ah, 0x02
+    int 0x10
+
+    mov dl, 25
+    jmp next_block
+
 end_print_eye:
     ; popa            ; pop all registers to stack
     ret
