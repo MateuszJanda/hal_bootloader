@@ -2,15 +2,6 @@
 [org 0x7c00] ; MBR start address
 
 
-
-; set video mode
-    xor     ax, ax     ; DS=0
-    mov     ds, ax
-    cld                ; DF=0 because our LODSB requires it
-    mov ax, 0x03
-    int 0x10
-
-
 %define EYE_START_COLUMN    27
 %define EYE_START_ROW       4
 %define EYE_NUM_OF_CHARS    25
@@ -22,6 +13,10 @@
 %define TEXT_RED_ON_BLACK   0x04
 
 
+; set video mode
+mov ax, 0x03
+int 0x10
+
 
 print_eye:
     mov dh, EYE_START_ROW
@@ -29,34 +24,28 @@ print_eye:
     mov ah, 0x02
     int 0x10
 
-    ; pusha           ; push all registers to stack
-    ; mov     bh, 0     ; DisplayPage
     mov al, EYE_BLOCK                ; 0x09, 0x0e function - ASCII character to write ▄
-    mov     cx, 1               ; 0x09 function - count of characters to write
+    mov cx, 1               ; 0x09 function - count of characters to write
     mov bh, 0
 
     mov dl, EYE_NUM_OF_CHARS
     mov di, EYE_NUM_OF_LINES
     mov si, hal_eye
-next_block:
-    ; lodsb
-
+eye_next_block:
     cmp dl, 0
-    je next_line
+    je eye_next_line
 
     mov bl, [si]        ; 0x09 background, foreground color
-
     mov ah, 0x09    ; ;      BIOS Function code - Write Character and Attribute
     int 0x10        ;  BIOS interrupt call
 
-    mov     ah, 0x0e   ; BIOS Function code - Teletype output
-    int     10h             ; BIOS interrupt call
+    mov ah, 0x0e   ; BIOS Function code - Teletype output
+    int 10h             ; BIOS interrupt call
 
     dec dl
     inc si
-    jmp next_block
-
-next_line:
+    jmp eye_next_block
+eye_next_line:
     dec di
     cmp di, 0
     je end_print_eye
@@ -67,10 +56,10 @@ next_line:
     int 0x10
 
     mov dl, EYE_NUM_OF_CHARS
-    jmp next_block
-
+    jmp eye_next_block
 end_print_eye:
     nop
+
 
 print_text:
     mov dh, TEXT_START_ROW
@@ -78,9 +67,7 @@ print_text:
     mov ah, 0x02
     int 0x10
 
-    ; pusha           ; push all registers to stack
-    ; mov     bh, 0     ; DisplayPage
-    mov     cx, 1               ; 0x09 function - count of characters to write
+    mov cx, 1               ; 0x09 function - count of characters to write
     mov bh, 0
     mov bl, TEXT_RED_ON_BLACK
 
@@ -90,31 +77,17 @@ next_char:
     cmp al, 0
     je end_print_text
 
-
     mov ah, 0x09    ; ;      BIOS Function code - Write Character and Attribute
     int 0x10        ;  BIOS interrupt call
 
-    mov     ah, 0x0e   ; BIOS Function code - Teletype output
-    int     10h             ; BIOS interrupt call
+    mov ah, 0x0e   ; BIOS Function code - Teletype output
+    int 10h             ; BIOS interrupt call
 
     inc si
     jmp next_char
-
-; next_line:
-;     dec di
-;     cmp di, 0
-;     je end_print_eye
-
-;     inc dh
-;     mov dl, EYE_START_COLUMN
-;     mov ah, 0x02
-;     int 0x10
-
-;     mov dl, EYE_NUM_OF_CHARS
-;     jmp next_block
-
 end_print_text:
     jmp $
+
 
 hal_eye:
     db 0x00,0x00,0x00,0x00,0x00,0x00,0x06,0x08,0x08,0x77,0x77,0x77,0x77,0xf7,0xf7,0x37,0x07,0x08,0x08,0x00,0x00,0x00,0x00,0x00,0x00
@@ -132,10 +105,9 @@ hal_eye:
     db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80,0x80,0x80,0x60,0x80,0x80,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 
 
-
-
 hal_text:
     db "I'm sorry Dave, I'm afraid I can't do that.", 0
+
 
 times 510-($-$$) db 0   ;     Byte padding
 dw 0xaa55               ; Mandatory, to mark this as valid MBR
