@@ -1,92 +1,101 @@
-[bits 16]           ; generate code designed to run on a processor operating in 16-bit mode
-[org 0x7c00] ; MBR start address
+[bits 16]                           ; Generate code designed to run on a processor operating in 16-bit mode
+[org 0x7c00]                        ; MBR start address
 
 
 %define EYE_START_COLUMN    27
 %define EYE_START_ROW       4
-%define EYE_NUM_OF_CHARS    25
+%define EYE_NUM_OF_BLOCKS   25
 %define EYE_NUM_OF_LINES    13
-%define EYE_BLOCK           220
+; Code page 437 of IBM PC - representing half block symbol ▄
+%define EYE_HALF_BLOCK      220
 
 %define TEXT_START_COLUMN   19
 %define TEXT_START_ROW      (EYE_START_ROW + EYE_NUM_OF_LINES + 1)
 %define TEXT_RED_ON_BLACK   0x04
 
 
-; set video mode
-mov ax, 0x03
-int 0x10
+; Set video mode
+mov al, 0x03                        ; Set 80x25 16 color text (CGA, EGA, MCGA, VGA)
+mov ah, 0x00                        ; Function BIOS:"Get cursor position and shape"
+int 0x10                            ; BIOS interrupt call
 
 
 print_eye:
-    mov dh, EYE_START_ROW
-    mov dl, EYE_START_COLUMN
-    mov ah, 0x02
-    int 0x10
+    mov dh, EYE_START_ROW           ; Set cursor row in 80x25 window
+    mov dl, EYE_START_COLUMN        ; Set cursor column in 80x25 window
+    mov ah, 0x02                    ; Function BIOS:"Set cursor position"
+    int 0x10                        ; BIOS interrupt call
 
-    mov al, EYE_BLOCK                ; 0x09, 0x0e function - ASCII character to write ▄
-    mov cx, 1               ; 0x09 function - count of characters to write
-    mov bh, 0
+    ; Constant values for:
+    ; BIOS:"Write character and attribute at cursor position" (0x09) and
+    ; BIOS:"Teletype output" (0x0e)
+    mov al, EYE_HALF_BLOCK          ; Character to write: ▄
+    mov cx, 1                       ; Number of times to print character - for BIOS:"Write character and attribute at cursor position" (0x09)
+    mov bh, 0                       ; Page Number
 
-    mov dl, EYE_NUM_OF_CHARS
-    mov di, EYE_NUM_OF_LINES
-    mov si, hal_eye
+    ; Temporary values
+    mov dl, EYE_NUM_OF_BLOCKS       ; Number of block in row
+    mov di, EYE_NUM_OF_LINES        ; Number of rows/lines
+    mov si, hal_eye                 ; Pointer to eye graphic
 eye_next_block:
-    cmp dl, 0
-    je eye_next_line
+    cmp dl, 0                       ; When all block was printed go to next line
+    je eye_next_line                ; Jump to next line
 
-    mov bl, [si]        ; 0x09 background, foreground color
-    mov ah, 0x09    ; ;      BIOS Function code - Write Character and Attribute
-    int 0x10        ;  BIOS interrupt call
+    mov bl, [si]                    ; Read background (high byte), foreground (low byte) color
+    mov ah, 0x09                    ; Function BIOS:"Write character and attribute at cursor position"
+    int 0x10                        ; BIOS interrupt call
 
-    mov ah, 0x0e   ; BIOS Function code - Teletype output
-    int 10h             ; BIOS interrupt call
+    mov ah, 0x0e                    ; Function BIOS:"Teletype output". This also move cursor to the right
+    int 0x10                        ; BIOS interrupt call
 
-    dec dl
-    inc si
-    jmp eye_next_block
+    dec dl                          ; Decrease blocks counter
+    inc si                          ; Increment pointer to next byte with background/foreground color
+    jmp eye_next_block              ; Jump, and process new block
 eye_next_line:
-    dec di
-    cmp di, 0
-    je end_print_eye
+    dec di                          ; Decrease line row/counter
+    cmp di, 0                       ; If counter == 0
+    je end_print_eye                ; All blocks was printed, jump to end.
 
-    inc dh
-    mov dl, EYE_START_COLUMN
-    mov ah, 0x02
-    int 0x10
+    inc dh                          ; Increment, to set cursor in next row
+    mov dl, EYE_START_COLUMN        ; Set cursor in same column
+    mov ah, 0x02                    ; Function BIOS:"Set cursor position"
+    int 0x10                        ; BIOS interrupt call
 
-    mov dl, EYE_NUM_OF_CHARS
-    jmp eye_next_block
+    mov dl, EYE_NUM_OF_BLOCKS       ; Reset counter value (number of blocks in row)
+    jmp eye_next_block              ; Jump, and process new block
 end_print_eye:
-    nop
+    nop                             ; Do nothing
 
 
 print_text:
-    mov dh, TEXT_START_ROW
-    mov dl, TEXT_START_COLUMN
-    mov ah, 0x02
-    int 0x10
+    mov dh, TEXT_START_ROW          ; Set cursor row in 80x25 window
+    mov dl, TEXT_START_COLUMN       ; Set cursor column in 80x25 window
+    mov ah, 0x02                    ; Function BIOS:"Set cursor position"
+    int 0x10                        ; BIOS interrupt call
 
-    mov cx, 1               ; 0x09 function - count of characters to write
-    mov bh, 0
-    mov bl, TEXT_RED_ON_BLACK
+    ; Constant values for:
+    ; BIOS:"Write character and attribute at cursor position" (0x09) and
+    ; BIOS:"Teletype output" (0x0e)
+    mov cx, 1                       ; Number of times to print character - for BIOS:"Write character and attribute at cursor position" (0x09)
+    mov bh, 0                       ; Page Number
+    mov bl, TEXT_RED_ON_BLACK       ; Set default background and foreground color
 
-    mov si, hal_text
-test_next_char:
-    mov al, [si]
-    cmp al, 0
-    je end_print_text
+    mov si, hal_text                ; Pointer to text
+text_next_char:
+    mov al, [si]                    ; Read character from memory
+    cmp al, 0                       ; If char == \0
+    je end_print_text               ; End printing
 
-    mov ah, 0x09    ; ;      BIOS Function code - Write Character and Attribute
-    int 0x10        ;  BIOS interrupt call
+    mov ah, 0x09                    ; Function BIOS:"Write character and attribute at cursor position"
+    int 0x10                        ; BIOS interrupt call
 
-    mov ah, 0x0e   ; BIOS Function code - Teletype output
-    int 10h             ; BIOS interrupt call
+    mov ah, 0x0e                    ; Function BIOS:"Teletype output". This also move cursor to the right
+    int 0x10                        ; BIOS interrupt call
 
-    inc si
-    jmp test_next_char
+    inc si                          ; Increment pointer to next character
+    jmp text_next_char              ; Jump, and process next character
 end_print_text:
-    jmp $
+    jmp $                           ; Jump to the end
 
 
 hal_eye:
@@ -109,5 +118,5 @@ hal_text:
     db "I'm sorry Dave, I'm afraid I can't do that.", 0
 
 
-times 510-($-$$) db 0   ;     Byte padding
-dw 0xaa55               ; Mandatory, to mark this as valid MBR
+times 510-($-$$) db 0               ; Byte padding
+dw 0xaa55                           ; Mandatory magic value - two last bytes to mark this as valid MBR
