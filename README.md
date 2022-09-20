@@ -1,5 +1,5 @@
-Toy project. Simple boot loader replacement, written in NASM (variant of Intel assembly syntax).
-It resides in MBR memory and doesn't boot OS just print nice graphic.
+Toy project. Simple bootloader written in NASM (variant of Intel assembly syntax).
+It resides in MBR memory and doesn't boot OS just print nice HAL graphic.
 
 <p align="center">
 <img src="./img/demo.png"/>

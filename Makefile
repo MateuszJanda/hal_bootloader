@@ -2,7 +2,7 @@ all: build
 
 build:
 	# Flat raw binary (MS-DOS, embedded, ...)
-	nasm boot_loader.asm -f bin -o boot_loader.bin
+	nasm bootloader.asm -f bin -o bootloader.bin
 
 clean:
-	rm boot_loader.bin
+	rm bootloader.bin
