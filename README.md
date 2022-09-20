@@ -8,7 +8,7 @@ It resides in MBR memory and doesn't boot OS just print nice HAL graphic.
 # Build and run
 ```bash
 make
-qemu-system-x86_64 -drive format=raw,file=boot_loader.bin
+qemu-system-x86_64 -drive format=raw,file=bootloader.bin
 ```
 
 # Links and credits
