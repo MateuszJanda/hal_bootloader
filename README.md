@@ -1,4 +1,5 @@
-NASM uses a variant of Intel assembly syntax.
+Toy project. Simple bootloader replacement, written in NASM (variant of Intel assembly syntax).
+It resides in MBR memory and doesn't boot OS just print nice graphic.
 
 # Build and run
 ```bash
