@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
 
 """
-Convert HAL256 bash escape codes to NASM (IBM Code page 437 colors) representation.
+Convert HAL bash escape colors codes (256) to NASM (IBM Code page 437 colors)
+representation.
 """
 
 import re
