@@ -1,6 +1,10 @@
 Toy project. Simple boot loader replacement, written in NASM (variant of Intel assembly syntax).
 It resides in MBR memory and doesn't boot OS just print nice graphic.
 
+<p align="center">
+<img src="./img/demo.png"/>
+</p>
+
 # Build and run
 ```bash
 make
