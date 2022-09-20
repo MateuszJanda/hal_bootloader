@@ -1,4 +1,4 @@
-Toy project. Simple bootloader replacement, written in NASM (variant of Intel assembly syntax).
+Toy project. Simple boot loader replacement, written in NASM (variant of Intel assembly syntax).
 It resides in MBR memory and doesn't boot OS just print nice graphic.
 
 # Build and run
@@ -7,7 +7,7 @@ make
 qemu-system-x86_64 -drive format=raw,file=boot_loader.bin
 ```
 
-# Links:
+# Links and credits
 - https://medium.com/swlh/an-introduction-to-i386-boot-loader-programming-823354b80846
 - https://en.wikipedia.org/wiki/INT_10H
 - https://en.wikipedia.org/wiki/Code_page_437
