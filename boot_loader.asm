@@ -16,7 +16,7 @@
 
 ; Set video mode
 mov al, 0x03                        ; Set 80x25 16 color text (CGA, EGA, MCGA, VGA)
-mov ah, 0x00                        ; Function BIOS:"Get cursor position and shape"
+mov ah, 0x00                        ; Function BIOS:"Set video mode"
 int 0x10                            ; BIOS interrupt call
 
 

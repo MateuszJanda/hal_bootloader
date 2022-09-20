@@ -1,12 +1,15 @@
 #! /usr/bin/env python3
 
+"""
+Convert HAL256 bash escape codes to NASM (IBM Code page 437 colors) representation.
+"""
+
 import re
 import string
 
 
 def main():
     with open("hal256.bash", "r") as f:
-        s = set()
         for line in f:
             if '"' in line:
                 continue
