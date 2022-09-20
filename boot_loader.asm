@@ -72,7 +72,7 @@ print_text:
     mov bl, TEXT_RED_ON_BLACK
 
     mov si, hal_text
-next_char:
+test_next_char:
     mov al, [si]
     cmp al, 0
     je end_print_text
@@ -84,7 +84,7 @@ next_char:
     int 10h             ; BIOS interrupt call
 
     inc si
-    jmp next_char
+    jmp test_next_char
 end_print_text:
     jmp $
 
