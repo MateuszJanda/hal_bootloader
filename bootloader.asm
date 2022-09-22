@@ -6,7 +6,7 @@
 %define EYE_START_ROW       4
 %define EYE_NUM_OF_BLOCKS   25
 %define EYE_NUM_OF_LINES    13
-; Code page 437 of IBM PC - representing half block symbol ▄
+; Half block symbol (▄) representing  in Code page 437 (IBM PC)
 %define EYE_HALF_BLOCK      220
 
 %define TEXT_START_COLUMN   19
@@ -29,7 +29,7 @@ print_eye:
     ; Constant values for:
     ; BIOS:"Write character and attribute at cursor position" (0x09) and
     ; BIOS:"Teletype output" (0x0e)
-    mov al, EYE_HALF_BLOCK          ; Character to write: ▄
+    mov al, EYE_HALF_BLOCK          ; Character to print: ▄
     mov cx, 1                       ; Number of times to print character - for BIOS:"Write character and attribute at cursor position" (0x09)
     mov bh, 0                       ; Page Number
 
@@ -38,7 +38,7 @@ print_eye:
     mov di, EYE_NUM_OF_LINES        ; Number of rows/lines
     mov si, hal_eye                 ; Pointer to eye graphic
 eye_next_block:
-    cmp dl, 0                       ; When all block was printed go to next line
+    cmp dl, 0                       ; When all block was printed
     je eye_next_line                ; Jump to next line
 
     mov bl, [si]                    ; Read background (high byte), foreground (low byte) color
