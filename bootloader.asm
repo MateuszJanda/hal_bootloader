@@ -6,7 +6,7 @@
 %define EYE_START_ROW       4
 %define EYE_NUM_OF_BLOCKS   25
 %define EYE_NUM_OF_LINES    13
-; Half block symbol (▄) representing  in Code page 437 (IBM PC)
+; Half block symbol (▄) represented in "code page 437" (IBM PC)
 %define EYE_HALF_BLOCK      220
 
 %define TEXT_START_COLUMN   19
